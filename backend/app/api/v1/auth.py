@@ -1,11 +1,12 @@
 """
 Authentication API endpoints.
 """
-from datetime import timedelta
+from datetime import timedelta, datetime
 from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
+from uuid import UUID
 
 from app.core.database import get_db
 from app.core.security import (
@@ -19,8 +20,13 @@ from app.core.security import (
 from app.core.config import settings
 from app.schemas.auth import Token, LoginRequest, RefreshTokenRequest
 from app.schemas.user import UserCreate, UserInDB
-from app.models.user import User
-from sqlalchemy import select
+
+# Import demo mode components
+if settings.DEMO_MODE:
+    from app.core.demo_db import get_demo_db
+else:
+    from app.models.user import User
+    from sqlalchemy import select
 
 router = APIRouter()
 
@@ -82,9 +88,11 @@ async def login(
     """
     User login endpoint.
 
+    **DEMO MODE**: Use email='reader@demo.com' or 'writer@demo.com' with password='password'
+
     Args:
         login_data: Login credentials
-        db: Database session
+        db: Database session (not used in demo mode)
 
     Returns:
         Access and refresh tokens
@@ -92,6 +100,37 @@ async def login(
     Raises:
         HTTPException: If credentials are invalid
     """
+    if settings.DEMO_MODE:
+        # Demo mode login
+        demo_db = get_demo_db()
+        user = demo_db.get_user_by_email(login_data.email)
+
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect email or password. Try: reader@demo.com or writer@demo.com with password 'password'",
+            )
+
+        # In demo mode, accept any password for simplicity (or check for "password")
+        if login_data.password != "password":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect password. Use 'password' for demo accounts",
+            )
+
+        # Create tokens
+        access_token = create_access_token(subject=str(user.id))
+        refresh_token = create_refresh_token(subject=str(user.id))
+
+        return Token(
+            access_token=access_token,
+            refresh_token=refresh_token,
+        )
+
+    # Normal database mode login
+    from app.models.user import User
+    from sqlalchemy import select
+
     # Get user by email
     result = await db.execute(select(User).where(User.email == login_data.email))
     user = result.scalar_one_or_none()
@@ -114,14 +153,14 @@ async def login(
         )
 
     # Check if account is locked
-    if user.locked_until and user.locked_until > datetime.utcnow():
+    if hasattr(user, 'locked_until') and user.locked_until and user.locked_until > datetime.utcnow():
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Account is temporarily locked",
         )
 
     # Check 2FA if enabled
-    if user.two_factor_enabled:
+    if hasattr(user, 'two_factor_enabled') and user.two_factor_enabled:
         if not login_data.totp_token:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -135,8 +174,10 @@ async def login(
             )
 
     # Reset failed login attempts
-    user.failed_login_attempts = 0
-    user.last_login = datetime.utcnow()
+    if hasattr(user, 'failed_login_attempts'):
+        user.failed_login_attempts = 0
+    if hasattr(user, 'last_login'):
+        user.last_login = datetime.utcnow()
     await db.commit()
 
     # Create tokens

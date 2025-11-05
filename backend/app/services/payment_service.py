@@ -9,45 +9,51 @@ Before using this service, update your .env file with:
 
 Test mode keys start with sk_test_ and pk_test_
 Live mode keys start with sk_live_ and pk_live_
+
+**DEMO MODE**: In demo mode, Stripe is not required. All payment operations return mock data.
 """
 from typing import Optional, Dict
 from sqlalchemy.ext.asyncio import AsyncSession
-from uuid import UUID
+from uuid import UUID, uuid4
 from datetime import datetime, date
-import stripe
 
 from app.core.config import settings
-from app.models.subscription import Subscription, Payment
-from app.models.user import User
 
-# Initialize Stripe
-stripe.api_key = settings.STRIPE_SECRET_KEY
+# Only import and initialize Stripe if not in demo mode
+if not settings.DEMO_MODE and settings.STRIPE_SECRET_KEY:
+    import stripe
+    stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 class PaymentService:
     """Service for payment operations using Stripe."""
 
     @staticmethod
-    async def create_customer(user: User) -> str:
+    async def create_customer(user) -> str:
         """
         Create a Stripe customer for a user.
 
-        **REQUIRES: STRIPE_SECRET_KEY in .env**
+        **REQUIRES: STRIPE_SECRET_KEY in .env** (not required in demo mode)
 
         Args:
             user: User to create customer for
 
         Returns:
-            str: Stripe customer ID
+            str: Stripe customer ID (or mock ID in demo mode)
         """
+        if settings.DEMO_MODE:
+            # Return mock customer ID in demo mode
+            return f"cus_demo_{uuid4().hex[:8]}"
+
         try:
+            import stripe
             customer = stripe.Customer.create(
                 email=user.email,
                 name=user.full_name or user.username,
                 metadata={"user_id": str(user.id)},
             )
             return customer.id
-        except stripe.error.StripeError as e:
+        except Exception as e:
             raise ValueError(f"Stripe error: {str(e)}")
 
     @staticmethod
@@ -338,6 +344,8 @@ class PaymentService:
         Get Stripe publishable key for frontend.
 
         Returns:
-            str: Stripe publishable key
+            str: Stripe publishable key (or mock key in demo mode)
         """
-        return settings.STRIPE_PUBLISHABLE_KEY
+        if settings.DEMO_MODE:
+            return "pk_demo_mock_publishable_key"
+        return settings.STRIPE_PUBLISHABLE_KEY or "pk_demo_mock_publishable_key"

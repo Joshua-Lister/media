@@ -9,6 +9,9 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
+    # Demo Mode - bypasses database, Stripe, and email requirements
+    DEMO_MODE: bool = False
+
     # Application
     APP_NAME: str = "Citizen Journalism Platform"
     VERSION: str = "1.0.0"
@@ -20,8 +23,8 @@ class Settings(BaseSettings):
     API_V1_PREFIX: str = "/api/v1"
 
     # Security
-    SECRET_KEY: str
-    JWT_SECRET_KEY: str
+    SECRET_KEY: str = "demo-secret-key-change-in-production"
+    JWT_SECRET_KEY: str = "demo-jwt-secret-key-change-in-production"
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
@@ -29,18 +32,18 @@ class Settings(BaseSettings):
     MAX_LOGIN_ATTEMPTS: int = 5
     ACCOUNT_LOCKOUT_DURATION_MINUTES: int = 30
 
-    # Database
-    DATABASE_URL: PostgresDsn
+    # Database (optional in demo mode)
+    DATABASE_URL: Optional[PostgresDsn] = None
     DB_ECHO_LOG: bool = False
     DB_POOL_SIZE: int = 20
     DB_MAX_OVERFLOW: int = 10
 
-    # Redis
-    REDIS_URL: RedisDsn
+    # Redis (optional in demo mode)
+    REDIS_URL: Optional[RedisDsn] = None
     REDIS_CACHE_EXPIRE_SECONDS: int = 3600
 
-    # Elasticsearch
-    ELASTICSEARCH_URL: str
+    # Elasticsearch (optional in demo mode)
+    ELASTICSEARCH_URL: Optional[str] = None
 
     # CORS
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
@@ -56,26 +59,26 @@ class Settings(BaseSettings):
     # Frontend URL
     FRONTEND_URL: AnyHttpUrl = "http://localhost:3000"
 
-    # Email
-    EMAIL_HOST: str
+    # Email (optional in demo mode)
+    EMAIL_HOST: Optional[str] = None
     EMAIL_PORT: int = 587
-    EMAIL_USERNAME: str
-    EMAIL_PASSWORD: str
-    EMAIL_FROM: EmailStr
+    EMAIL_USERNAME: Optional[str] = None
+    EMAIL_PASSWORD: Optional[str] = None
+    EMAIL_FROM: Optional[EmailStr] = None
     EMAIL_USE_TLS: bool = True
 
-    # Stripe
-    STRIPE_SECRET_KEY: str
-    STRIPE_PUBLISHABLE_KEY: str
-    STRIPE_WEBHOOK_SECRET: str
+    # Stripe (optional in demo mode)
+    STRIPE_SECRET_KEY: Optional[str] = None
+    STRIPE_PUBLISHABLE_KEY: Optional[str] = None
+    STRIPE_WEBHOOK_SECRET: Optional[str] = None
     PLATFORM_FEE_PERCENTAGE: int = 15
     MINIMUM_PAYOUT_USD: int = 10
     PAYOUT_SCHEDULE: str = "weekly"
 
-    # AWS S3
-    AWS_ACCESS_KEY_ID: str
-    AWS_SECRET_ACCESS_KEY: str
-    AWS_S3_BUCKET: str
+    # AWS S3 (optional in demo mode)
+    AWS_ACCESS_KEY_ID: Optional[str] = None
+    AWS_SECRET_ACCESS_KEY: Optional[str] = None
+    AWS_S3_BUCKET: Optional[str] = None
     AWS_REGION: str = "us-east-1"
 
     # AI Services

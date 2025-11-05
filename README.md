@@ -2,19 +2,49 @@
 
 A secure, scalable citizen journalism platform where readers vote on important topics and writers create content based on community interest. The platform supports dual user modes (reader/writer), comprehensive rating systems, and monetization options.
 
-## ⚠️ IMPORTANT: Configuration Required
+## 🚀 Quick Start with Demo Mode (No Setup Required!)
 
-**Before running this application, you MUST configure API keys and credentials.**
+**Want to try it instantly without databases or API keys?**
+
+```bash
+# 1. Copy demo environment
+cp .env.demo .env
+
+# 2. Start backend
+cd backend
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+
+# 3. Start frontend (in another terminal)
+cd frontend
+npm install
+npm start
+
+# 4. Login at http://localhost:3000
+# Use: reader@demo.com / password
+```
+
+**👉 See [DEMO_MODE.md](./DEMO_MODE.md) for complete demo mode guide.**
+
+Demo mode works **without**:
+- PostgreSQL, Redis, or Elasticsearch
+- Stripe account or payment setup
+- Email server configuration
+- AWS S3 or cloud storage
+
+---
+
+## ⚠️ Production Setup: Configuration Required
+
+**For production or full-featured development, you need to configure:**
 
 👉 **See [SETUP.md](./SETUP.md) for detailed configuration instructions.**
 
-Required configurations:
+Required for production:
 - **Stripe API Keys** (for payment processing)
-- **OpenAI or Anthropic API Key** (for AI article generation)
+- **PostgreSQL Database** (for data persistence)
 - **Email SMTP Settings** (for notifications)
 - **Secret Keys** (for security)
-
-The application will not work properly without these configurations!
 
 ## 🏗️ Architecture
 

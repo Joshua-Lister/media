@@ -283,12 +283,11 @@ docker-compose restart postgres
 ```bash
 cd backend
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+# Install uv (if not already installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Install dependencies
-pip install -r requirements.txt
+# Install dependencies using uv
+uv pip install -e .
 
 # Run migrations
 alembic upgrade head
@@ -297,7 +296,7 @@ alembic upgrade head
 python -m app.scripts.seed_data
 
 # Start server
-uvicorn app.main:app --reload
+uv run uvicorn app.main:app --reload
 ```
 
 ### Frontend

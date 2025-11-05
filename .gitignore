@@ -30,6 +30,11 @@ ENV/
 env/
 .venv
 
+# uv
+.python-version
+uv.lock
+.uv/
+
 # Testing
 .pytest_cache/
 .coverage

@@ -18,21 +18,27 @@ This is perfect for:
 
 ## Quick Start (60 seconds)
 
-### 1. Copy the demo environment file
+### 1. Install uv (if not already installed)
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+### 2. Copy the demo environment file
 
 ```bash
 cp .env.demo .env
 ```
 
-### 2. Start the backend
+### 3. Start the backend
 
 ```bash
 cd backend
-pip install -r requirements.txt
-uvicorn app.main:app --reload
+uv pip install -e .
+uv run uvicorn app.main:app --reload
 ```
 
-### 3. Start the frontend
+### 4. Start the frontend
 
 ```bash
 cd frontend
@@ -40,7 +46,7 @@ npm install
 npm start
 ```
 
-### 4. Access the application
+### 5. Access the application
 
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:8000

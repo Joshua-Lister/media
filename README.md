@@ -10,17 +10,20 @@ A secure, scalable citizen journalism platform where readers vote on important t
 # 1. Copy demo environment
 cp .env.demo .env
 
-# 2. Start backend
-cd backend
-pip install -r requirements.txt
-uvicorn app.main:app --reload
+# 2. Install uv (if not already installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# 3. Start frontend (in another terminal)
+# 3. Start backend
+cd backend
+uv pip install -e .
+uv run uvicorn app.main:app --reload
+
+# 4. Start frontend (in another terminal)
 cd frontend
 npm install
 npm start
 
-# 4. Login at http://localhost:3000
+# 5. Login at http://localhost:3000
 # Use: reader@demo.com / password
 ```
 

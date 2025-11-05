@@ -1,0 +1,151 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: cj_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-citizen_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-citizen_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-citizen_journalism}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-citizen_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cj_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: cj_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cj_network
+
+  elasticsearch:
+    image: elasticsearch:8.11.0
+    container_name: cj_elasticsearch
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - cj_network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cj_backend
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-citizen_user}:${POSTGRES_PASSWORD:-citizen_pass}@postgres:5432/${POSTGRES_DB:-citizen_journalism}
+      - REDIS_URL=redis://redis:6379
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - SECRET_KEY=${SECRET_KEY}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - backend_static:/app/static
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - cj_network
+
+  celery_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cj_celery_worker
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-citizen_user}:${POSTGRES_PASSWORD:-citizen_pass}@postgres:5432/${POSTGRES_DB:-citizen_journalism}
+      - REDIS_URL=redis://redis:6379
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - SECRET_KEY=${SECRET_KEY}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - redis
+      - postgres
+    command: celery -A app.core.celery worker --loglevel=info
+    networks:
+      - cj_network
+
+  celery_beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cj_celery_beat
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-citizen_user}:${POSTGRES_PASSWORD:-citizen_pass}@postgres:5432/${POSTGRES_DB:-citizen_journalism}
+      - REDIS_URL=redis://redis:6379
+      - SECRET_KEY=${SECRET_KEY}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - redis
+      - postgres
+    command: celery -A app.core.celery beat --loglevel=info
+    networks:
+      - cj_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: cj_frontend
+    environment:
+      - REACT_APP_API_URL=${BACKEND_URL:-http://localhost:8000}
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    command: npm start
+    networks:
+      - cj_network
+
+volumes:
+  postgres_data:
+  redis_data:
+  elasticsearch_data:
+  backend_static:
+
+networks:
+  cj_network:
+    driver: bridge

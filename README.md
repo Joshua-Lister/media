@@ -2,6 +2,20 @@
 
 A secure, scalable citizen journalism platform where readers vote on important topics and writers create content based on community interest. The platform supports dual user modes (reader/writer), comprehensive rating systems, and monetization options.
 
+## ⚠️ IMPORTANT: Configuration Required
+
+**Before running this application, you MUST configure API keys and credentials.**
+
+👉 **See [SETUP.md](./SETUP.md) for detailed configuration instructions.**
+
+Required configurations:
+- **Stripe API Keys** (for payment processing)
+- **OpenAI or Anthropic API Key** (for AI article generation)
+- **Email SMTP Settings** (for notifications)
+- **Secret Keys** (for security)
+
+The application will not work properly without these configurations!
+
 ## 🏗️ Architecture
 
 ### Tech Stack

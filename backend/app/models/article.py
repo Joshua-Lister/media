@@ -97,6 +97,7 @@ class Article(Base):
     author = relationship("User", back_populates="articles")
     topic = relationship("Topic", back_populates="articles")
     ratings = relationship("Rating", back_populates="article", cascade="all, delete-orphan")
+    annotations = relationship("ArticleAnnotation", back_populates="article", cascade="all, delete-orphan")
     versions = relationship(
         "Article",
         backref="parent_version",

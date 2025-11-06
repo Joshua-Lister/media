@@ -1,7 +1,9 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { mockArticles } from '../utils/mockData';
-import ReactMarkdown from 'react-markdown';
+import MultiCriteriaRating from '../components/MultiCriteriaRating';
+import RatingsDisplay from '../components/RatingsDisplay';
+import ArticleAnnotations from '../components/ArticleAnnotations';
 
 const ArticleDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -121,10 +123,8 @@ const ArticleDetailPage: React.FC = () => {
             />
           )}
 
-          {/* Article Body */}
-          <div className="prose prose-lg max-w-none">
-            <ReactMarkdown>{article.content}</ReactMarkdown>
-          </div>
+          {/* Article Body with Annotations */}
+          <ArticleAnnotations articleId={article.id} content={article.content} />
 
           {/* Tags */}
           <div className="mt-8 pt-6 border-t border-gray-200">
@@ -141,16 +141,14 @@ const ArticleDetailPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Rating Section */}
-        <div className="bg-white rounded-lg shadow-sm p-8 mt-6">
-          <h3 className="text-2xl font-bold text-gray-900 mb-4">Rate This Article</h3>
-          {renderStars(article.average_rating)}
-          <p className="text-gray-600 mt-4">
-            Help other readers by rating this article. Your feedback helps us showcase the best content.
-          </p>
-          <button className="btn btn-primary mt-4">
-            Leave a Rating
-          </button>
+        {/* Ratings Display */}
+        <div className="mt-6">
+          <RatingsDisplay articleId={article.id} />
+        </div>
+
+        {/* Rating Form */}
+        <div className="mt-6">
+          <MultiCriteriaRating articleId={article.id} />
         </div>
 
         {/* Support Writer */}

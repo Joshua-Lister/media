@@ -128,7 +128,7 @@ class Payment(Base):
 
     # Metadata
     description = Column(Text, nullable=True)
-    metadata = Column(Text, nullable=True)  # JSON stored as text
+    payment_metadata = Column(Text, nullable=True)  # JSON stored as text (renamed from 'metadata' - SQLAlchemy reserved word)
 
     # Refund
     refunded = Column(Integer, default=0, nullable=False)  # 0 = no, 1 = yes

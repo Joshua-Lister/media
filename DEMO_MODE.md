@@ -34,7 +34,7 @@ cp .env.demo .env
 
 ```bash
 cd backend
-uv pip install -e .
+uv sync
 uv run uvicorn app.main:app --reload
 ```
 

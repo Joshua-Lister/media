@@ -15,7 +15,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # 3. Start backend
 cd backend
-uv pip install -e .
+uv sync
 uv run uvicorn app.main:app --reload
 
 # 4. Start frontend (in another terminal)

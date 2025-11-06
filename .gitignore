@@ -30,9 +30,7 @@ ENV/
 env/
 .venv
 
-# uv
-.python-version
-uv.lock
+# uv (keep uv.lock for reproducible builds)
 .uv/
 
 # Testing

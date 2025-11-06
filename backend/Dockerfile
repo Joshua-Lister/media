@@ -5,8 +5,7 @@ WORKDIR /app
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    UV_SYSTEM_PYTHON=1
+    PYTHONUNBUFFERED=1
 
 # Install system dependencies and uv
 RUN apt-get update && apt-get install -y \
@@ -21,9 +20,11 @@ RUN apt-get update && apt-get install -y \
 RUN useradd -m -u 1000 appuser && \
     chown -R appuser:appuser /app
 
-# Copy pyproject.toml and install dependencies
-COPY pyproject.toml .
-RUN uv pip install -e .
+# Copy dependency files
+COPY pyproject.toml uv.lock* ./
+
+# Install dependencies using uv sync
+RUN uv sync --frozen --no-dev
 
 # Copy application code
 COPY --chown=appuser:appuser . .
@@ -35,4 +36,4 @@ USER appuser
 EXPOSE 8000
 
 # Run the application
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -286,8 +286,8 @@ cd backend
 # Install uv (if not already installed)
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Install dependencies using uv
-uv pip install -e .
+# Install dependencies and create lockfile
+uv sync
 
 # Run migrations
 alembic upgrade head

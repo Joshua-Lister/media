@@ -25,6 +25,8 @@ interface RatingsDisplayProps {
 }
 
 const RatingsDisplay: React.FC<RatingsDisplayProps> = ({ articleId }) => {
+  const [showCriteriaBreakdown, setShowCriteriaBreakdown] = React.useState(false);
+
   const { data: ratings = [], isLoading } = useQuery<Rating[]>({
     queryKey: ['ratings', articleId],
     queryFn: async () => {
@@ -103,39 +105,70 @@ const RatingsDisplay: React.FC<RatingsDisplayProps> = ({ articleId }) => {
 
       {/* Overall Average */}
       {overallAverage && (
-        <div className="bg-gray-50 rounded-lg p-6 mb-6">
+        <div className="bg-gradient-to-br from-primary-50 to-secondary-50 rounded-lg p-6 mb-6 border border-primary-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-2">Overall Average</p>
+              <p className="text-sm font-medium text-gray-600 mb-2">Overall Rating</p>
               <div className="flex items-center gap-3">
-                <span className="text-4xl font-bold text-gray-900">{overallAverage}</span>
+                <span className="text-5xl font-bold text-gray-900">{overallAverage}</span>
                 <div className="flex flex-col">
                   {renderMiniStars(Math.round(parseFloat(overallAverage)))}
-                  <span className="text-sm text-gray-500 mt-1">out of 5</span>
+                  <span className="text-sm text-gray-500 mt-1">out of 5 stars</span>
                 </div>
               </div>
             </div>
+            <button
+              onClick={() => setShowCriteriaBreakdown(!showCriteriaBreakdown)}
+              className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-sm hover:shadow-md transition-all border border-gray-200"
+            >
+              <span className="text-sm font-medium text-gray-700">
+                {showCriteriaBreakdown ? 'Hide' : 'Show'} Criteria
+              </span>
+              <svg
+                className={`w-5 h-5 text-gray-600 transition-transform ${showCriteriaBreakdown ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
           </div>
 
-          {/* Criteria Averages */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6 pt-6 border-t border-gray-200">
-            {Object.entries(criteriaLabels).map(([key, { label, icon }]) => {
-              const avg = calculateAverage(key as keyof Rating);
-              if (!avg) return null;
-              return (
-                <div key={key} className="flex items-center gap-2">
-                  <span className="text-xl">{icon}</span>
-                  <div className="flex-1">
-                    <p className="text-xs text-gray-600">{label}</p>
-                    <div className="flex items-center gap-1">
-                      <span className="font-semibold text-gray-900">{avg}</span>
-                      <span className="text-xs text-gray-500">/5</span>
+          {/* Criteria Averages Dropdown */}
+          {showCriteriaBreakdown && (
+            <div className="mt-6 pt-6 border-t border-primary-200">
+              <h4 className="text-sm font-semibold text-gray-700 mb-4">Rating Breakdown by Criteria</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {Object.entries(criteriaLabels).map(([key, { label, icon }]) => {
+                  const avg = calculateAverage(key as keyof Rating);
+                  if (!avg) return null;
+                  const percentage = (parseFloat(avg) / 5) * 100;
+                  return (
+                    <div key={key} className="bg-white rounded-lg p-4 shadow-sm">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl">{icon}</span>
+                          <span className="text-sm font-medium text-gray-700">{label}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="text-lg font-bold text-gray-900">{avg}</span>
+                          <span className="text-xs text-gray-500">/5</span>
+                        </div>
+                      </div>
+                      {/* Progress Bar */}
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-gradient-to-r from-primary-500 to-secondary-500 h-2 rounded-full transition-all"
+                          style={{ width: `${percentage}%` }}
+                        ></div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

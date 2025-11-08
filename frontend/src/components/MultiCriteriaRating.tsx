@@ -20,7 +20,6 @@ interface RatingCriteria {
 const MultiCriteriaRating: React.FC<MultiCriteriaRatingProps> = ({ articleId, onSuccess }) => {
   const queryClient = useQueryClient();
   const { isAuthenticated } = useAuthStore();
-  const [showForm, setShowForm] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [ratings, setRatings] = useState<RatingCriteria>({
     accuracy_rating: 0,
@@ -86,7 +85,8 @@ const MultiCriteriaRating: React.FC<MultiCriteriaRatingProps> = ({ articleId, on
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['article', articleId] });
-      setShowForm(false);
+      queryClient.invalidateQueries({ queryKey: ['ratings', articleId] });
+      // Reset form
       setRatings({
         accuracy_rating: 0,
         sources_rating: 0,
@@ -96,6 +96,7 @@ const MultiCriteriaRating: React.FC<MultiCriteriaRatingProps> = ({ articleId, on
         bias_rating: 0,
       });
       setFeedback('');
+      alert('Thank you! Your rating has been submitted.');
       onSuccess?.();
     },
   });
@@ -126,47 +127,19 @@ const MultiCriteriaRating: React.FC<MultiCriteriaRatingProps> = ({ articleId, on
 
   const hasAnyRating = Object.values(ratings).some(v => v > 0);
 
-  if (!showForm) {
-    return (
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h3 className="text-2xl font-bold text-gray-900 mb-4">Rate This Article</h3>
-        <p className="text-gray-600 mb-4">
-          Help readers by providing detailed feedback across multiple quality dimensions.
-        </p>
-        <button
-          onClick={() => {
-            if (!isAuthenticated) {
-              alert('Please log in to rate articles');
-              return;
-            }
-            setShowForm(true);
-          }}
-          className="btn btn-primary"
-        >
-          Leave a Detailed Rating
-        </button>
-      </div>
-    );
-  }
-
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-2xl font-bold text-gray-900">Rate This Article</h3>
-        <button
-          onClick={() => setShowForm(false)}
-          className="text-gray-400 hover:text-gray-600"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+    <div className="bg-white rounded-lg shadow-sm p-6 border-2 border-primary-200">
+      <div className="mb-6">
+        <h3 className="text-2xl font-bold text-gray-900 mb-2">Rate This Article</h3>
+        <p className="text-gray-600">
+          Rate the article across 6 quality dimensions. Click the stars to rate.
+        </p>
       </div>
 
       <div className="space-y-6">
-        {/* Rating Criteria */}
+        {/* Rating Criteria - ALWAYS VISIBLE */}
         {criteriaInfo.map((criteria) => (
-          <div key={criteria.key} className="border-b border-gray-200 pb-6 last:border-0 last:pb-0">
+          <div key={criteria.key} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
@@ -183,7 +156,7 @@ const MultiCriteriaRating: React.FC<MultiCriteriaRatingProps> = ({ articleId, on
                 submitMutation.isPending
               )}
               {ratings[criteria.key] > 0 && (
-                <span className="text-sm font-medium text-gray-700">
+                <span className="text-lg font-bold text-primary-600">
                   {ratings[criteria.key]} / 5
                 </span>
               )}
@@ -214,20 +187,26 @@ const MultiCriteriaRating: React.FC<MultiCriteriaRatingProps> = ({ articleId, on
         )}
 
         {/* Submit Button */}
-        <div className="flex gap-3 pt-4">
+        <div className="pt-4">
+          {!isAuthenticated ? (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+              <p className="text-yellow-800 text-sm">
+                Please <a href="/login" className="font-semibold underline">log in</a> to submit your rating.
+              </p>
+            </div>
+          ) : null}
           <button
-            onClick={() => setShowForm(false)}
-            className="btn btn-secondary flex-1"
-            disabled={submitMutation.isPending}
+            onClick={() => {
+              if (!isAuthenticated) {
+                alert('Please log in to rate articles');
+                return;
+              }
+              submitMutation.mutate();
+            }}
+            className="btn btn-primary w-full text-lg py-3"
+            disabled={submitMutation.isPending || !hasAnyRating || !isAuthenticated}
           >
-            Cancel
-          </button>
-          <button
-            onClick={() => submitMutation.mutate()}
-            className="btn btn-primary flex-1"
-            disabled={submitMutation.isPending || !hasAnyRating}
-          >
-            {submitMutation.isPending ? 'Submitting...' : 'Submit Rating'}
+            {submitMutation.isPending ? 'Submitting Your Rating...' : 'Submit Rating'}
           </button>
         </div>
       </div>

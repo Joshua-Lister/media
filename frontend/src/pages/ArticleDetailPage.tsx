@@ -4,6 +4,7 @@ import { mockArticles } from '../utils/mockData';
 import MultiCriteriaRating from '../components/MultiCriteriaRating';
 import RatingsDisplay from '../components/RatingsDisplay';
 import ArticleAnnotations from '../components/ArticleAnnotations';
+import WriterRating from '../components/WriterRating';
 
 const ArticleDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -111,8 +112,17 @@ const ArticleDetailPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Writer Rating Section */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <WriterRating
+          writer={article.author}
+          averageRating={4.6}
+          totalRatings={142}
+        />
+      </div>
+
       {/* Article Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
         <div className="bg-white rounded-lg shadow-sm p-8 md:p-12">
           {/* Cover Image */}
           {article.cover_image_url && (
@@ -141,42 +151,21 @@ const ArticleDetailPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Ratings Display */}
-        <div className="mt-6">
-          <RatingsDisplay articleId={article.id} />
-        </div>
+        {/* Article Rating Section */}
+        <div className="mt-8 pt-8 border-t-4 border-gray-200">
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">📊 Rate This Article</h2>
+          <p className="text-gray-600 mb-6">
+            Help other readers by rating this article across multiple quality dimensions
+          </p>
 
-        {/* Rating Form */}
-        <div className="mt-6">
-          <MultiCriteriaRating articleId={article.id} />
-        </div>
+          {/* Ratings Display */}
+          <div className="mb-6">
+            <RatingsDisplay articleId={article.id} />
+          </div>
 
-        {/* Support Writer */}
-        <div className="bg-gradient-to-r from-primary-50 to-secondary-50 rounded-lg shadow-sm p-8 mt-6">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center">
-              <img
-                src={article.author.avatar_url}
-                alt={article.author.full_name}
-                className="w-16 h-16 rounded-full mr-4"
-              />
-              <div>
-                <h3 className="text-xl font-bold text-gray-900">
-                  Enjoyed this article?
-                </h3>
-                <p className="text-gray-600">
-                  Support {article.author.full_name} and help them create more great content.
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <button className="btn btn-primary">
-                ❤️ Donate
-              </button>
-              <button className="btn btn-secondary">
-                Follow Writer
-              </button>
-            </div>
+          {/* Rating Form */}
+          <div>
+            <MultiCriteriaRating articleId={article.id} />
           </div>
         </div>
       </div>

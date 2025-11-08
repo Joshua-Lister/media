@@ -52,11 +52,17 @@ class DemoArticle:
     """In-memory article for demo mode."""
     id: UUID = field(default_factory=uuid4)
     title: str = ""
+    slug: str = ""
+    summary: str = ""
     content: str = ""
+    category: str = "News"
+    cover_image_url: Optional[str] = None
     author_id: UUID = None
     topic_id: Optional[UUID] = None
     status: str = "draft"  # draft, published, archived
     view_count: int = 0
+    reading_time_minutes: int = 5
+    published_at: datetime = field(default_factory=datetime.utcnow)
     created_at: datetime = field(default_factory=datetime.utcnow)
     updated_at: datetime = field(default_factory=datetime.utcnow)
 
@@ -170,9 +176,13 @@ class DemoDatabase:
 
         # Create demo articles with rich content
         topic_ids = list(self.topics.keys())
+        from datetime import timedelta
+
         articles_data = [
             {
                 "title": "Solar Panels Coming to City Hall: A $2M Investment",
+                "slug": "solar-panels-city-hall-2m-investment",
+                "summary": "Our city is making a significant investment in renewable energy with a new solar panel installation at City Hall.",
                 "content": """Our city is making a significant investment in renewable energy with a new solar panel installation at City Hall. The project, approved last month with a budget of $2 million, represents the largest clean energy initiative in our city's history.
 
 According to Mayor Johnson, the solar array will cover the entire roof of City Hall and is expected to generate 400,000 kWh annually. This would reduce the building's electricity costs by an estimated 60% and save taxpayers approximately $50,000 per year.
@@ -180,13 +190,19 @@ According to Mayor Johnson, the solar array will cover the entire roof of City H
 However, critics point out that at current savings rates, it would take 40 years to recoup the initial investment. City Councilor Sarah Martinez questioned whether the funds could be better spent on other climate initiatives.
 
 The installation is scheduled to begin next month and be completed by year's end. The project has received a $500,000 grant from the state's Clean Energy Fund.""",
+                "category": "Environment",
+                "cover_image_url": "https://images.unsplash.com/photo-1509391366360-2e959784a276?w=800",
                 "author_id": demo_writer.id,
                 "topic_id": topic_ids[0] if topic_ids else None,
                 "status": "published",
                 "view_count": 1247,
+                "reading_time_minutes": 8,
+                "published_at": datetime.utcnow() - timedelta(days=2),
             },
             {
                 "title": "City Budget 2024: Where Your Tax Dollars Go",
+                "slug": "city-budget-2024-tax-dollars",
+                "summary": "A detailed breakdown of the city's $450 million budget and what it means for taxpayers.",
                 "content": """The city council approved the 2024 budget last night with a total spending of $450 million. Here's the breakdown:
 
 - Education: $180M (40%)
@@ -198,10 +214,98 @@ The installation is scheduled to begin next month and be completed by year's end
 The budget includes a 3% property tax increase, which will cost the average homeowner an additional $150 per year. This marks the fourth consecutive year of tax increases.
 
 New investments include $10 million for road repairs and $5 million for a new community health center. However, the teachers' union expressed disappointment that educator salaries only increased by 2%, below the 3.5% inflation rate.""",
+                "category": "Politics",
+                "cover_image_url": "https://images.unsplash.com/photo-1541872705-1f73c6400ec9?w=800",
                 "author_id": demo_writer.id,
                 "topic_id": topic_ids[1] if len(topic_ids) > 1 else None,
                 "status": "published",
-                "view_count": 892,
+                "view_count": 2134,
+                "reading_time_minutes": 6,
+                "published_at": datetime.utcnow() - timedelta(days=5),
+            },
+            {
+                "title": "Mental Health Crisis: Breaking the Stigma in Our Community",
+                "slug": "mental-health-crisis-breaking-stigma",
+                "summary": "Local mental health advocates are working to normalize conversations about mental wellness and expand access to services.",
+                "content": """Mental health has emerged from the shadows as one of the most pressing public health issues of our time. Local advocates are launching a new initiative to break the stigma and expand access to mental health services in our community.
+
+The 'Minds Matter' campaign brings together healthcare providers, schools, and community organizations to provide free mental health screenings and connect residents with resources. According to Dr. Lisa Chen, the initiative's director, 1 in 5 adults in our county experience mental illness each year, yet only 40% receive treatment.
+
+The program includes partnerships with local employers to offer mental health days and training for managers to recognize signs of distress in their teams. Three new counseling centers will open in underserved neighborhoods by year's end.
+
+However, funding remains a challenge. The initiative relies heavily on donations and a small grant from the state health department. Organizers are calling on the city council to allocate dedicated funding in next year's budget.""",
+                "category": "Health",
+                "cover_image_url": "https://images.unsplash.com/photo-1573497491208-6b1acb260507?w=800",
+                "author_id": demo_writer.id,
+                "topic_id": topic_ids[2] if len(topic_ids) > 2 else None,
+                "status": "published",
+                "view_count": 1856,
+                "reading_time_minutes": 10,
+                "published_at": datetime.utcnow() - timedelta(days=7),
+            },
+            {
+                "title": "Public Schools Face Teacher Shortage Crisis",
+                "slug": "public-schools-teacher-shortage-crisis",
+                "summary": "District officials warn that unfilled teaching positions could force larger class sizes and reduced course offerings.",
+                "content": """Our school district is facing its worst teacher shortage in decades, with 47 unfilled positions just weeks before the new school year begins. District Superintendent Maria Rodriguez warns that the crisis could lead to larger class sizes and reduced course offerings.
+
+The shortage is hitting STEM subjects and special education hardest. At Lincoln High School, the physics and chemistry positions remain vacant, forcing the school to consider online instruction for advanced courses.
+
+Teachers cite low pay, challenging working conditions, and lack of respect as reasons for leaving the profession. Starting salary for teachers in our district is $42,000, compared to the state average of $51,000. The teachers' union is demanding a 15% raise to make positions competitive with neighboring districts.
+
+The district has launched an emergency recruitment campaign, including hiring bonuses of up to $5,000 for teachers in high-need subjects. They're also fast-tracking certification for career changers and working with local universities to expand student teacher programs.""",
+                "category": "Education",
+                "cover_image_url": "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800",
+                "author_id": demo_writer.id,
+                "topic_id": topic_ids[3] if len(topic_ids) > 3 else None,
+                "status": "published",
+                "view_count": 987,
+                "reading_time_minutes": 9,
+                "published_at": datetime.utcnow() - timedelta(days=10),
+            },
+            {
+                "title": "Affordable Housing Project Approved Despite Neighborhood Opposition",
+                "slug": "affordable-housing-project-approved",
+                "summary": "City council votes 6-3 to approve 200-unit affordable housing development, overriding concerns from local residents.",
+                "content": """The city council voted 6-3 Tuesday night to approve a controversial 200-unit affordable housing development on the former industrial site at Oak and Main Street, despite fierce opposition from neighborhood groups.
+
+The Riverside Commons project, developed by Community Housing Partners, will provide housing for families earning 60% or less of the area median income. Units will range from studios to three-bedroom apartments, with rents capped at $850-$1,400 per month.
+
+Supporters argue the project addresses the city's critical shortage of affordable housing. Over 2,000 families are currently on the waiting list for housing assistance, and median rents have increased 45% over the past five years.
+
+Opponents, including the Riverside Neighborhood Association, raised concerns about traffic, parking, and strain on local schools. Some residents questioned whether the development would change the character of their neighborhood.
+
+Construction is expected to begin in spring 2025, with the first units available by late 2026. The project includes a community center, playground, and green space.""",
+                "category": "Housing",
+                "cover_image_url": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800",
+                "author_id": demo_writer.id,
+                "topic_id": topic_ids[4] if len(topic_ids) > 4 else None,
+                "status": "published",
+                "view_count": 1432,
+                "reading_time_minutes": 7,
+                "published_at": datetime.utcnow() - timedelta(days=14),
+            },
+            {
+                "title": "Police Department Launches Body Camera Program",
+                "slug": "police-body-camera-program-launch",
+                "summary": "All patrol officers will be equipped with body cameras by end of year in effort to increase transparency and accountability.",
+                "content": """The police department officially launched its body camera program Monday, equipping the first 50 officers with recording devices as part of a phased rollout that will cover all 200 patrol officers by year's end.
+
+Police Chief Thomas Bradley called the $1.2 million program 'a significant step toward transparency and accountability.' The cameras will automatically activate when officers turn on their sirens or draw their weapons, and officers can also manually activate them during citizen encounters.
+
+The program follows years of advocacy from civil rights groups and comes after several controversial incidents involving police use of force. Footage will be retained for 90 days, with longer retention for incidents involving arrests or use of force.
+
+Privacy advocates have raised concerns about when cameras should be turned off, particularly in private homes or when interviewing victims of domestic violence. The department's policy allows officers to deactivate cameras in these sensitive situations, but they must document the reason.
+
+The city has also hired two full-time staff members to manage the footage and respond to public records requests.""",
+                "category": "Public Safety",
+                "cover_image_url": "https://images.unsplash.com/photo-1587731556938-38755b4803a6?w=800",
+                "author_id": demo_writer.id,
+                "topic_id": topic_ids[5] if len(topic_ids) > 5 else None,
+                "status": "published",
+                "view_count": 2891,
+                "reading_time_minutes": 8,
+                "published_at": datetime.utcnow() - timedelta(days=1),
             },
         ]
 
@@ -212,7 +316,7 @@ New investments include $10 million for road repairs and $5 million for a new co
         # Create demo ratings with multi-criteria
         article_ids = list(self.articles.keys())
         if article_ids:
-            # Rating 1: High quality review
+            # Ratings for article 0 (Solar Panels)
             rating1 = DemoRating(
                 article_id=article_ids[0],
                 user_id=demo_reader.id,
@@ -227,7 +331,7 @@ New investments include $10 million for road repairs and $5 million for a new co
             )
             self.ratings[rating1.id] = rating1
 
-            # Rating 2: Critical review
+            # Ratings for article 1 (City Budget)
             rating2 = DemoRating(
                 article_id=article_ids[1],
                 user_id=demo_reader.id,
@@ -241,6 +345,70 @@ New investments include $10 million for road repairs and $5 million for a new co
                 bias_rating=4,
             )
             self.ratings[rating2.id] = rating2
+
+            # Ratings for article 2 (Mental Health)
+            if len(article_ids) > 2:
+                rating3 = DemoRating(
+                    article_id=article_ids[2],
+                    user_id=demo_reader.id,
+                    rating=5,
+                    feedback="Important topic covered with empathy and depth. Great resource list.",
+                    accuracy_rating=5,
+                    sources_rating=5,
+                    writing_quality_rating=5,
+                    originality_rating=4,
+                    depth_rating=5,
+                    bias_rating=5,
+                )
+                self.ratings[rating3.id] = rating3
+
+            # Ratings for article 3 (Teacher Shortage)
+            if len(article_ids) > 3:
+                rating4 = DemoRating(
+                    article_id=article_ids[3],
+                    user_id=demo_reader.id,
+                    rating=4,
+                    feedback="Well-researched article highlighting a critical issue.",
+                    accuracy_rating=5,
+                    sources_rating=4,
+                    writing_quality_rating=4,
+                    originality_rating=4,
+                    depth_rating=4,
+                    bias_rating=4,
+                )
+                self.ratings[rating4.id] = rating4
+
+            # Ratings for article 4 (Affordable Housing)
+            if len(article_ids) > 4:
+                rating5 = DemoRating(
+                    article_id=article_ids[4],
+                    user_id=demo_reader.id,
+                    rating=4,
+                    feedback="Balanced coverage of both sides of this controversial issue.",
+                    accuracy_rating=5,
+                    sources_rating=4,
+                    writing_quality_rating=4,
+                    originality_rating=3,
+                    depth_rating=4,
+                    bias_rating=5,
+                )
+                self.ratings[rating5.id] = rating5
+
+            # Ratings for article 5 (Police Body Cameras)
+            if len(article_ids) > 5:
+                rating6 = DemoRating(
+                    article_id=article_ids[5],
+                    user_id=demo_reader.id,
+                    rating=5,
+                    feedback="Thorough examination of the body camera program with good privacy discussion.",
+                    accuracy_rating=5,
+                    sources_rating=5,
+                    writing_quality_rating=5,
+                    originality_rating=4,
+                    depth_rating=5,
+                    bias_rating=5,
+                )
+                self.ratings[rating6.id] = rating6
 
         # Create demo annotations
         if article_ids:

@@ -73,6 +73,8 @@ class DemoTopic:
     id: UUID = field(default_factory=uuid4)
     title: str = ""
     description: str = ""
+    category: str = "General"  # Politics, Environment, Health, Education, Housing, etc.
+    tags: List[str] = field(default_factory=list)  # ["climate", "renewable-energy", etc.]
     vote_count: int = 0
     created_at: datetime = field(default_factory=datetime.utcnow)
 
@@ -115,6 +117,21 @@ class DemoAnnotation:
     created_at: datetime = field(default_factory=datetime.utcnow)
 
 
+@dataclass
+class DemoUserInterest:
+    """Track user interests for personalization."""
+    id: UUID = field(default_factory=uuid4)
+    user_id: UUID = None
+    # Categories and tags the user has interacted with
+    category_scores: Dict[str, int] = field(default_factory=dict)  # {category: interaction_count}
+    tag_scores: Dict[str, int] = field(default_factory=dict)  # {tag: interaction_count}
+    # Topics the user has voted on
+    voted_topic_ids: List[UUID] = field(default_factory=list)
+    # Articles the user has read
+    read_article_ids: List[UUID] = field(default_factory=list)
+    updated_at: datetime = field(default_factory=datetime.utcnow)
+
+
 class DemoDatabase:
     """In-memory database for demo mode."""
 
@@ -125,6 +142,7 @@ class DemoDatabase:
         self.topics: Dict[UUID, DemoTopic] = {}
         self.ratings: Dict[UUID, DemoRating] = {}
         self.annotations: Dict[UUID, DemoAnnotation] = {}
+        self.user_interests: Dict[UUID, DemoUserInterest] = {}  # user_id -> interests
         self.user_by_email: Dict[str, UUID] = {}
         self.user_by_username: Dict[str, UUID] = {}
 
@@ -162,12 +180,48 @@ class DemoDatabase:
 
         # Create demo topics
         topics_data = [
-            {"title": "Climate Change Solutions", "description": "Innovative approaches to combat climate change and transition to renewable energy", "vote_count": 156},
-            {"title": "Local Government Transparency", "description": "Exposing local government spending, decisions, and accountability", "vote_count": 142},
-            {"title": "Community Health Initiatives", "description": "Public health programs, mental health services, and healthcare access in our community", "vote_count": 98},
-            {"title": "Education System Reform", "description": "Teacher pay, curriculum changes, and school funding in our district", "vote_count": 87},
-            {"title": "Housing Affordability Crisis", "description": "Rising rents, homelessness, and affordable housing solutions", "vote_count": 76},
-            {"title": "Police Reform and Accountability", "description": "Community policing, transparency, and oversight of law enforcement", "vote_count": 65},
+            {
+                "title": "Climate Change Solutions",
+                "description": "Innovative approaches to combat climate change and transition to renewable energy",
+                "category": "Environment",
+                "tags": ["climate", "renewable-energy", "sustainability", "green-energy"],
+                "vote_count": 156
+            },
+            {
+                "title": "Local Government Transparency",
+                "description": "Exposing local government spending, decisions, and accountability",
+                "category": "Politics",
+                "tags": ["government", "transparency", "accountability", "local-politics", "budget"],
+                "vote_count": 142
+            },
+            {
+                "title": "Community Health Initiatives",
+                "description": "Public health programs, mental health services, and healthcare access in our community",
+                "category": "Health",
+                "tags": ["healthcare", "mental-health", "public-health", "wellness", "community"],
+                "vote_count": 98
+            },
+            {
+                "title": "Education System Reform",
+                "description": "Teacher pay, curriculum changes, and school funding in our district",
+                "category": "Education",
+                "tags": ["education", "schools", "teachers", "curriculum", "funding"],
+                "vote_count": 87
+            },
+            {
+                "title": "Housing Affordability Crisis",
+                "description": "Rising rents, homelessness, and affordable housing solutions",
+                "category": "Housing",
+                "tags": ["housing", "affordability", "homelessness", "rent", "real-estate"],
+                "vote_count": 76
+            },
+            {
+                "title": "Police Reform and Accountability",
+                "description": "Community policing, transparency, and oversight of law enforcement",
+                "category": "Public Safety",
+                "tags": ["police", "reform", "accountability", "law-enforcement", "community-policing"],
+                "vote_count": 65
+            },
         ]
 
         for topic_data in topics_data:
@@ -478,14 +532,114 @@ The city has also hired two full-time staff members to manage the footage and re
         """Get article by ID."""
         return self.articles.get(article_id)
 
-    def get_topics(self, skip: int = 0, limit: int = 20) -> List[DemoTopic]:
-        """Get list of topics sorted by vote count."""
-        sorted_topics = sorted(self.topics.values(), key=lambda t: t.vote_count, reverse=True)
+    def get_topics(
+        self,
+        skip: int = 0,
+        limit: int = 20,
+        category: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        search: Optional[str] = None
+    ) -> List[DemoTopic]:
+        """Get list of topics with filtering support."""
+        topics = list(self.topics.values())
+
+        # Filter by category
+        if category:
+            topics = [t for t in topics if t.category == category]
+
+        # Filter by tags (topic must have at least one matching tag)
+        if tags:
+            topics = [
+                t for t in topics
+                if any(tag in t.tags for tag in tags)
+            ]
+
+        # Search in title and description
+        if search:
+            search_lower = search.lower()
+            topics = [
+                t for t in topics
+                if search_lower in t.title.lower() or search_lower in t.description.lower()
+            ]
+
+        # Sort by vote count
+        sorted_topics = sorted(topics, key=lambda t: t.vote_count, reverse=True)
+
         return sorted_topics[skip:skip + limit]
 
     def get_topic_by_id(self, topic_id: UUID) -> Optional[DemoTopic]:
         """Get topic by ID."""
         return self.topics.get(topic_id)
+
+    def track_user_interest(
+        self,
+        user_id: UUID,
+        category: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        topic_id: Optional[UUID] = None,
+        article_id: Optional[UUID] = None
+    ):
+        """Track user interests for personalization."""
+        # Get or create user interest record
+        if user_id not in self.user_interests:
+            self.user_interests[user_id] = DemoUserInterest(user_id=user_id)
+
+        interest = self.user_interests[user_id]
+
+        # Update category scores
+        if category:
+            interest.category_scores[category] = interest.category_scores.get(category, 0) + 1
+
+        # Update tag scores
+        if tags:
+            for tag in tags:
+                interest.tag_scores[tag] = interest.tag_scores.get(tag, 0) + 1
+
+        # Track voted topics
+        if topic_id and topic_id not in interest.voted_topic_ids:
+            interest.voted_topic_ids.append(topic_id)
+
+        # Track read articles
+        if article_id and article_id not in interest.read_article_ids:
+            interest.read_article_ids.append(article_id)
+
+        interest.updated_at = datetime.utcnow()
+
+    def get_recommended_topics(self, user_id: UUID, limit: int = 10) -> List[DemoTopic]:
+        """Get personalized topic recommendations based on user interests."""
+        # Get user interests
+        interest = self.user_interests.get(user_id)
+
+        # If no interests yet, return trending topics
+        if not interest or (not interest.category_scores and not interest.tag_scores):
+            return self.get_topics(limit=limit)
+
+        # Score topics based on user interests
+        scored_topics = []
+        for topic in self.topics.values():
+            score = 0
+
+            # Skip topics the user has already voted on
+            if topic.id in (interest.voted_topic_ids if interest else []):
+                continue
+
+            # Score based on category match
+            if topic.category in interest.category_scores:
+                score += interest.category_scores[topic.category] * 10
+
+            # Score based on tag matches
+            for tag in topic.tags:
+                if tag in interest.tag_scores:
+                    score += interest.tag_scores[tag] * 5
+
+            # Add base popularity score (trending topics get a boost)
+            score += topic.vote_count * 0.1
+
+            scored_topics.append((score, topic))
+
+        # Sort by score and return top results
+        scored_topics.sort(key=lambda x: x[0], reverse=True)
+        return [topic for score, topic in scored_topics[:limit]]
 
 
 # Global demo database instance

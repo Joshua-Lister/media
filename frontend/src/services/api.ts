@@ -104,8 +104,11 @@ export const articlesAPI = {
 
 // Topics API
 export const topicsAPI = {
-  list: () =>
-    apiClient.get('/topics'),
+  list: (params?: { category?: string; tags?: string; search?: string }) =>
+    apiClient.get('/topics/', { params }),
+
+  recommended: () =>
+    apiClient.get('/topics/recommended'),
 
   trending: () =>
     apiClient.get('/topics/trending'),

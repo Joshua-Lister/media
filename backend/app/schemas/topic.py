@@ -3,7 +3,7 @@ Topic schemas for request/response validation.
 """
 from pydantic import BaseModel, Field
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 from uuid import UUID
 
 
@@ -11,6 +11,8 @@ class TopicBase(BaseModel):
     """Base topic schema."""
     title: str = Field(..., min_length=5, max_length=200, description="Topic title")
     description: str = Field(..., min_length=20, max_length=1000, description="Topic description")
+    category: Optional[str] = Field(default="General", description="Topic category")
+    tags: List[str] = Field(default_factory=list, description="Topic tags")
 
 
 class TopicCreate(TopicBase):

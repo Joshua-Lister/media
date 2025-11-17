@@ -101,7 +101,7 @@ async def get_recommended_topics(
     if settings.DEMO_MODE:
         demo_db = get_demo_db()
         recommended_topics = demo_db.get_recommended_topics(
-            user_id=current_user["id"],
+            user_id=current_user.id,
             limit=limit
         )
 
@@ -152,7 +152,7 @@ async def vote_on_topic(
 
         # Track user interest
         demo_db.track_user_interest(
-            user_id=current_user["id"],
+            user_id=current_user.id,
             category=topic.category,
             tags=topic.tags,
             topic_id=topic.id

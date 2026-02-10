@@ -36,11 +36,13 @@ class Rating(Base):
     # Feedback
     feedback = Column(Text, nullable=True)
 
-    # Detailed Ratings
-    accuracy_rating = Column(Integer, nullable=True)  # 1-5
-    sources_rating = Column(Integer, nullable=True)  # 1-5
-    writing_quality_rating = Column(Integer, nullable=True)  # 1-5
-    originality_rating = Column(Integer, nullable=True)  # 1-5
+    # Detailed Ratings (1-5 scale)
+    accuracy_rating = Column(Integer, nullable=True)  # How factually accurate
+    sources_rating = Column(Integer, nullable=True)  # Quality of sources cited
+    writing_quality_rating = Column(Integer, nullable=True)  # Writing clarity and grammar
+    originality_rating = Column(Integer, nullable=True)  # Unique insights/perspective
+    depth_rating = Column(Integer, nullable=True)  # Depth of analysis and research
+    bias_rating = Column(Integer, nullable=True)  # Objectivity (5=unbiased, 1=heavily biased)
 
     # Fraud Prevention
     ip_address = Column(INET, nullable=True)

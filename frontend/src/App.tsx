@@ -11,6 +11,7 @@ import ArticlesPage from './pages/ArticlesPage';
 import ArticleDetailPage from './pages/ArticleDetailPage';
 import TopicsPage from './pages/TopicsPage';
 import ProfilePage from './pages/ProfilePage';
+import WriterProfilePage from './pages/WriterProfilePage';
 
 // Components
 import Layout from './components/Layout';
@@ -40,6 +41,7 @@ function App() {
             <Route path="/articles" element={<ArticlesPage />} />
             <Route path="/articles/:id" element={<ArticleDetailPage />} />
             <Route path="/topics" element={<TopicsPage />} />
+            <Route path="/writers/:username" element={<WriterProfilePage />} />
 
             {/* Protected routes */}
             <Route

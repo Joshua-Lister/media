@@ -104,8 +104,11 @@ export const articlesAPI = {
 
 // Topics API
 export const topicsAPI = {
-  list: () =>
-    apiClient.get('/topics'),
+  list: (params?: { category?: string; tags?: string; search?: string }) =>
+    apiClient.get('/topics/', { params }),
+
+  recommended: () =>
+    apiClient.get('/topics/recommended'),
 
   trending: () =>
     apiClient.get('/topics/trending'),
@@ -142,6 +145,45 @@ export const paymentsAPI = {
 
   getPublishableKey: () =>
     apiClient.get('/payments/publishable-key'),
+};
+
+// Ratings API
+export const ratingsAPI = {
+  create: (articleId: string, data: {
+    rating: number;
+    feedback?: string;
+    accuracy_rating?: number;
+    sources_rating?: number;
+    writing_quality_rating?: number;
+    originality_rating?: number;
+    depth_rating?: number;
+    bias_rating?: number;
+  }) =>
+    apiClient.post(`/articles/${articleId}/ratings`, data),
+
+  list: (articleId: string) =>
+    apiClient.get(`/articles/${articleId}/ratings`),
+};
+
+// Annotations API
+export const annotationsAPI = {
+  create: (articleId: string, data: {
+    selection_text: string;
+    selection_start_offset: number;
+    selection_end_offset: number;
+    annotation_type: string;
+    comment: string;
+    evidence_url?: string;
+    evidence_title?: string;
+    evidence_excerpt?: string;
+  }) =>
+    apiClient.post(`/articles/${articleId}/annotations`, data),
+
+  list: (articleId: string) =>
+    apiClient.get(`/articles/${articleId}/annotations`),
+
+  vote: (annotationId: string, voteType: 'upvote' | 'downvote') =>
+    apiClient.post(`/annotations/${annotationId}/vote`, { vote_type: voteType }),
 };
 
 // AI API

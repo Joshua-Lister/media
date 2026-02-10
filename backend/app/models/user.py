@@ -85,6 +85,7 @@ class User(Base):
     articles = relationship("Article", back_populates="author", cascade="all, delete-orphan")
     topic_votes = relationship("TopicVote", back_populates="user", cascade="all, delete-orphan")
     ratings = relationship("Rating", back_populates="user", cascade="all, delete-orphan")
+    annotations = relationship("ArticleAnnotation", back_populates="user", cascade="all, delete-orphan")
     subscriptions = relationship(
         "Subscription",
         foreign_keys="Subscription.subscriber_id",

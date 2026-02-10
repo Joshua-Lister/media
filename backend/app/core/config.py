@@ -1,7 +1,7 @@
 """
 Application configuration settings.
 """
-from typing import List, Optional
+from typing import List, Optional, Union
 from pydantic import AnyHttpUrl, EmailStr, PostgresDsn, RedisDsn, validator
 from pydantic_settings import BaseSettings
 
@@ -46,18 +46,21 @@ class Settings(BaseSettings):
     ELASTICSEARCH_URL: Optional[str] = None
 
     # CORS
-    BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
+    BACKEND_CORS_ORIGINS: Union[str, List[str]] = []
 
     @validator("BACKEND_CORS_ORIGINS", pre=True)
-    def assemble_cors_origins(cls, v: str | List[str]) -> List[str] | str:
+    def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:
         if isinstance(v, str) and not v.startswith("["):
             return [i.strip() for i in v.split(",")]
-        elif isinstance(v, (list, str)):
+        elif isinstance(v, list):
             return v
-        raise ValueError(v)
+        elif isinstance(v, str):
+            import json
+            return json.loads(v)
+        return []
 
     # Frontend URL
-    FRONTEND_URL: AnyHttpUrl = "http://localhost:3000"
+    FRONTEND_URL: str = "http://localhost:3000"
 
     # Email (optional in demo mode)
     EMAIL_HOST: Optional[str] = None

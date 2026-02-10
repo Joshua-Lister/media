@@ -29,7 +29,7 @@
     "recharts": "^2.10.3",
     "slate": "^0.101.5",
     "slate-react": "^0.101.5",
-    "typescript": "^5.3.3",
+    "typescript": "^4.9.5",
     "yup": "^1.3.3",
     "zustand": "^4.4.7"
   },
